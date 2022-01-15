@@ -2,42 +2,47 @@
 #include <random>
 
 int main() {
-	//srand(time(NULL));
-	std::random_device rng;
-	std::uniform_real_distribution<double> range(0.0, 400.0);
-
 	float WIDTH = 400;
 	float HEIGHT = 400;
 	int CAPACITY = 2;
 	float MINSIZE = 200;
-	int DEPTH = 3;
-	QBox boundary(WIDTH / 2, HEIGHT / 2, WIDTH / 2, HEIGHT / 2);	// (x, y, w, h)
+	int DEPTH = 2;
+	QBoundary boundary(WIDTH / 2, HEIGHT / 2, WIDTH / 2, HEIGHT / 2);	// (x, y, w, h)
+	QNode qt(boundary, DEPTH);
+	std::cout << "----------------------------------------" << std::endl;
 
-	//Quadtree qt(boundary, MINSIZE);
-	Quadtree qt(boundary, DEPTH);
-	std::cout << "depth : " << qt.GetDepth() << std::endl;
+	std::ifstream fin;
+	fin.open("C:\\Users\\WOOKJIN\\Desktop\\pointtest\\20.txt");
 
-	for (int i = 0; i < 3; i++) {
-		//float x = range(rng);
-		//float y = range(rng);
-		//Point p(x, y);
-		//std::cout << "point input | x : " << x << ", y : " << y << ", z : " << z << std::endl;
-		float x = rand() % (int)WIDTH;
-		float y = rand() % (int)HEIGHT;
-		float z = rand() % 400;
-		std::cout << "point input | x : " << x << ", y : " << y << ", z : " << z << std::endl;
-		QPoint point(x, y, z);
-		QPoint* p = &point;		// 포인터로
+	std::vector<QPoint3D*> filePoints;
+	std::string line;
 
-		int depth = 0;
-		qt.insert(p, depth);
-
-		std::cout << "Point Path : ";
-		std::vector<int> temp = p->GetPath();
-		for (int i = 0; i < temp.size(); i++) {
-			std::cout << temp[i] << " ";
+	if (fin.is_open()) {
+		while (!fin.eof()) {
+			float x, y, z;
+			QPoint3D* coordinate = new QPoint3D;
+			getline(fin, line);
+			std::istringstream iss(line);
+			iss >> x >> y >> z;
+			coordinate->SetXYZ(x, y, z);
+			filePoints.push_back(coordinate);
 		}
-		std::cout << std::endl;
 	}
-}
+	fin.close();
 
+	for (int i = 0; i < filePoints.size(); i++) {
+		std::cout << filePoints[i]->GetX() << " " << filePoints[i]->GetY() << " " << filePoints[i]->GetZ() << std::endl;
+	}
+
+	for (int i = 0; i < filePoints.size(); i++) {
+		int depth = 0;
+		qt.insert(filePoints[i], depth);
+	}
+
+	for (int i = 0; i < filePoints.size(); i++) {
+		std::cout << "Point Path : ";
+		std::cout << filePoints[i]->GetStringPath() << std::endl;
+	}
+
+	qt.findAverage(filePoints);
+}
