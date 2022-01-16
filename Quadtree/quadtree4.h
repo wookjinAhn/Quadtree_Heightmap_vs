@@ -87,7 +87,8 @@ private:
 	QNode* se = nullptr;
 
 	std::vector<QPoint3D*> mPoints;
-	std::map<std::string, std::pair<float, int>> mMap;
+	std::map<std::string, std::pair<float, int>> mMapString;
+	std::map<std::pair<float, float>, std::pair<float, int>> mMapPair;
 
 public:
 	QNode(QBoundary boundary, float minsize) : mBoundary(boundary), mMinsize(minsize) {}
@@ -98,12 +99,15 @@ public:
 	float GetMin() const { return mMinsize; }
 	int GetDepth() const { return mDepth; }
 	std::vector<QPoint3D*> GetPoints() const { return mPoints; }
-	std::map<std::string, std::pair<float, int>> GetMap() const { return mMap; }
+	std::map<std::string, std::pair<float, int>> GetMapString() const { return mMapString; }
 	// Setter
 	void SetMin(float minsize) { this->mMinsize = minsize; }
 	void SetDepth(int depth) { this->mDepth = depth; }
 
 	void subdivide();
 	QPoint3D* insert(QPoint3D* p, int depth);
-	void findAverage(std::vector<QPoint3D*> points);
+
+	void findAveragePath(std::vector<QPoint3D*> points);
+	void findAverageEndXY(std::vector<QPoint3D*> points);
+	void makeHeightMap();
 };
