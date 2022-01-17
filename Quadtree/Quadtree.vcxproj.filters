@@ -18,40 +18,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="quadtree.h">
-      <Filter>past_version</Filter>
-    </ClInclude>
-    <ClInclude Include="quadtree4.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="quadtree2.h">
-      <Filter>past_version</Filter>
-    </ClInclude>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="quadtree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="quadtree.cpp">
-      <Filter>past_version</Filter>
-    </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>past_version</Filter>
-    </ClCompile>
-    <ClCompile Include="main2.cpp">
-      <Filter>past_version</Filter>
-    </ClCompile>
-    <ClCompile Include="quadtree2.cpp">
-      <Filter>past_version</Filter>
-    </ClCompile>
-    <ClCompile Include="main4.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="quadtree4.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="main3.cpp">
-      <Filter>past_version</Filter>
-    </ClCompile>
-    <ClCompile Include="quadtree3.cpp">
-      <Filter>past_version</Filter>
-    </ClCompile>
+    <ClInclude Include="quadtree.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

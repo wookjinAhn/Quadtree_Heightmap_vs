@@ -2,37 +2,55 @@
 #include <random>
 
 int main() {
-	//srand(time(NULL));
-	std::random_device rng;
-	std::uniform_real_distribution<double> range(0.0, 400.0);
+	float MIN_X = -1;
+	float MAX_X = 1;
+	float Z = 3;
+	int DEPTH = 7;
+	QBoundary boundary((MAX_X + MIN_X) / 2, Z / 2, (MAX_X - MIN_X) / 2, Z / 2);	// (x, z, w, h)
+	QNode qt(boundary, DEPTH);
 
-	int WIDTH = 400;
-	int HEIGHT = 400;
-	int CAPACITY = 2;
-	float MINSIZE = 200;
-	QBox boundary(200, 200, 200, 200);
-	//Quadtree qt(boundary, CAPACITY);
-	//qt.SetMin(10);
-	Quadtree qt(boundary, MINSIZE);
-
-	//std::cout << boundary.GetX() << std::endl;
-	//std::cout << qt.GetBoundary().GetX() << std::endl;
-	std::cout << qt.GetMin() << std::endl;
+	clock_t start;
+	clock_t end;
 	
-	for (int i = 0; i < 3; i++) {
-		//float x = range(rng);
-		//float y = range(rng);
-		//Point p(x, y);
-		//std::cout << "point input | x : " << x << ", y : " << y << std::endl;
-		float x = rand() % 400;
-		float y = rand() % 400;
-		float h = rand() % 400;
-		QPoint p(x, y);
-		std::cout << "point input | x : " << x << ", y : " << y << std::endl;
-		qt.insert(p);
-		
+	// ----- Read file -----
+	std::cout << "Read PCD File : ";
+	std::string inputPath = "C:\\Users\\WOOKJIN\\Desktop\\testPCD_khnp\\stair.pcd";
+	start = clock();
+
+	std::vector<QPoint3D*> inputPoints = qt.readPCD(inputPath);
+
+	end = clock();
+	std::cout << ((double)(end - start)) / (long)CLOCKS_PER_SEC << " sec" << std::endl;
+
+	// ----- sampling -----
+	std::cout << "Sampling : ";
+	start = clock();
+
+	std::vector<QPoint3D*> samplingPoints = qt.samplingPoints(inputPoints, 10000);
+
+	end = clock();
+	std::cout << ((double)(end - start)) / (long)CLOCKS_PER_SEC << " sec" << std::endl;
+
+	// ----- Get Height -----
+	std::cout << "Get Height PCD : ";
+	start = clock();
+
+	for (int i = 0; i < samplingPoints.size(); i++) {
+		int depth = 0;
+
+		qt.insert(samplingPoints[i], depth);
 	}
+	qt.findHeightXZ(samplingPoints);
 
+	end = clock();
+	std::cout << ((double)(end - start)) / (long)CLOCKS_PER_SEC << " sec" << std::endl;
 
+	// ----- Write file -----
+	std::cout << "Write PCD File : ";
+	start = clock();
+
+	qt.writePCD();
+
+	end = clock();
+	std::cout << ((double)(end - start)) / (long)CLOCKS_PER_SEC << " sec" << std::endl;
 }
-
