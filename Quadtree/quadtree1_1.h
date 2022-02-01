@@ -53,6 +53,7 @@ private:
 	QPoint2D mEndNodeXZ;
 };
 
+
 class QBoundary {
 public:
 	QBoundary() : mX(0), mZ(0), mW(0), mH(0) {}
@@ -69,6 +70,19 @@ public:
 
 private:
 	float mX, mZ, mW, mH;
+};
+
+
+class QHeightmap {
+public:
+	QHeightmap() {}
+	void writePCD();
+	void findHeightXYZ(QPoint3D* points);
+	std::map<std::pair<float, float>, std::pair<float, int>> GetMapPair() { return mMapPair; }
+	void insertMapPair(float x, float z, float y, int dividNum) { mMapPair.insert({ std::make_pair(x, z), std::make_pair(y, dividNum) }); }
+
+private:
+	std::map<std::pair<float, float>, std::pair<float, int>> mMapPair;
 };
 
 class QNode {
@@ -92,7 +106,7 @@ public:
 	void SetDepth(int depth) { this->mDepth = depth; }
 
 	void subdivide();
-	QPoint3D* insert(QPoint3D* p, int depth);
+	void insert(QPoint3D* p, QHeightmap* heightmap, int depth);
 
 	std::vector<QPoint3D*> readPCD(std::string inputPath);
 	std::vector<QPoint3D*> samplingPoints(std::vector<QPoint3D*> inputPoints, int samplingNum);
@@ -118,9 +132,3 @@ private:
 	std::map<std::pair<float, float>, std::pair<float, int>> mMapPair;
 };
 
-class QHeightmap {
-public:
-
-private:
-
-};

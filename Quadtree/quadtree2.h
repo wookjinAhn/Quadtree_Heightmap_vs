@@ -9,6 +9,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <queue>
 
 class QPoint2D {
 public:
@@ -71,6 +72,18 @@ private:
 	float mX, mZ, mW, mH;
 };
 
+class QHeightmap {
+public:
+	QHeightmap() {}
+	void writeXYZ();
+	void findHeightXYZ(QPoint3D* points);
+	std::map<std::pair<float, float>, std::pair<float, int>> GetMapPair() { return mMapPair; }
+	void insertMapPair(float x, float z, float y, int dividNum) { mMapPair.insert({ std::make_pair(x, z), std::make_pair(y, dividNum) }); }
+
+private:
+	std::map<std::pair<float, float>, std::pair<float, int>> mMapPair;
+};
+
 class QNode {
 public:
 	QNode() : mBoundary() {}
@@ -82,7 +95,7 @@ public:
 	//float GetMin() const { return mMinsize; }
 	int GetCapacity() const { return mCapacity; }
 	int GetDepth() const { return mDepth; }
-	std::vector<QPoint3D*> GetPoints() const { return mPoints; }
+	std::queue<QPoint3D*> GetPoints() const { return mPoints; }
 	std::map<std::string, std::pair<float, int>> GetMapString() const { return mMapString; }
 
 	void SetBoundary(QBoundary boundary) { this->mBoundary = boundary; }
@@ -92,18 +105,19 @@ public:
 	void SetDepth(int depth) { this->mDepth = depth; }
 
 	void subdivide();
-	QPoint3D* insert(QPoint3D* p, int depth);
+	void insert(QPoint3D* p, QHeightmap* heightmap,int depth);
 
 	std::vector<QPoint3D*> readPCD(std::string inputPath);
 	std::vector<QPoint3D*> samplingPoints(std::vector<QPoint3D*> inputPoints, int samplingNum);
 	void findHeightPath(std::vector<QPoint3D*> points);
 	void findHeightXZ(std::vector<QPoint3D*> points);
 	void writePCD();
+	void findHeightXYZ(QPoint3D* points);
+	void writeXYZ(QHeightmap* heightmap);
 
 private:
 	QBoundary mBoundary;
-	bool divided = false;
-	//float mMinsize = 0;
+	bool mDivided = false;
 	int mCapacity = 0;
 	int mDepth = 0;
 
@@ -113,14 +127,9 @@ private:
 	QNode* sw = nullptr;
 	QNode* se = nullptr;
 
-	std::vector<QPoint3D*> mPoints;	// not use yet
+	std::queue<QPoint3D*> mPoints;	
 	std::map<std::string, std::pair<float, int>> mMapString;
 	std::map<std::pair<float, float>, std::pair<float, int>> mMapPair;
 };
 
-class QHeightmap {
-public:
 
-private:
-
-};

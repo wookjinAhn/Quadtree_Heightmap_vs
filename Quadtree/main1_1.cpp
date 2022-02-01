@@ -1,4 +1,4 @@
-#include "quadtree.h"
+#include "quadtree1_1.h"
 #include <random>
 
 int main() {
@@ -10,11 +10,11 @@ int main() {
 	QNode qt(boundary, DEPTH);
 
 	QNode QuadTree();
-	QNode qtP(boundary, DEPTH);	
+	QNode qtP(boundary, DEPTH);
 
 	clock_t start;
 	clock_t end;
-	
+
 	// ----- Read file -----
 	std::cout << "Read PCD File : ";
 	std::string inputPath = "C:\\Users\\WOOKJIN\\Desktop\\testPCD_khnp\\stair_real_rotate.pcd";
@@ -29,7 +29,8 @@ int main() {
 	std::cout << "Sampling : ";
 	start = clock();
 
-	std::vector<QPoint3D*> samplingPoints = qt.samplingPoints(inputPoints, 10000);
+	int samplingNum = 10000;
+	std::vector<QPoint3D*> samplingPoints = qt.samplingPoints(inputPoints, samplingNum);
 
 	end = clock();
 	std::cout << ((double)(end - start)) / (long)CLOCKS_PER_SEC << " sec" << std::endl;
@@ -37,13 +38,14 @@ int main() {
 	// ----- Get Height -----
 	std::cout << "Get Height PCD : ";
 	start = clock();
+	QHeightmap* heightmap = new QHeightmap();
 
 	for (int i = 0; i < samplingPoints.size(); i++) {	//
 		int depth = 0;
 
-		qt.insert(samplingPoints[i], depth);	//
+		qt.insert(samplingPoints[i], heightmap, depth);	//
 	}
-	qt.findHeightXZ(samplingPoints);	//
+	//qt.findHeightXZ(samplingPoints);	//
 
 	end = clock();
 	std::cout << ((double)(end - start)) / (long)CLOCKS_PER_SEC << " sec" << std::endl;
@@ -52,7 +54,8 @@ int main() {
 	std::cout << "Write PCD File : ";
 	start = clock();
 
-	qt.writePCD();
+	//qt.writePCD();
+	heightmap->writePCD();
 
 	end = clock();
 	std::cout << ((double)(end - start)) / (long)CLOCKS_PER_SEC << " sec" << std::endl;

@@ -1,4 +1,4 @@
-#include "quadtree.h"
+#include "quadtree1_1.h"
 
 bool QBoundary::constains(QPoint3D* p) {
 	return (p->GetX() >= mX - mW && p->GetX() < mX + mW
@@ -6,54 +6,49 @@ bool QBoundary::constains(QPoint3D* p) {
 }
 
 void QNode::subdivide() {
-	float x = parent->mBoundary.GetX();
-	float z = parent->mBoundary.GetZ();
-	float w = parent->mBoundary.GetW();
-	float h = parent->mBoundary.GetH();
+	float x = mBoundary.GetX();
+	float z = mBoundary.GetZ();
+	float w = mBoundary.GetW();
+	float h = mBoundary.GetH();
 
 	QBoundary b_nw(x - w / 2, z + h / 2, w / 2, h / 2);
 	QBoundary b_ne(x + w / 2, z + h / 2, w / 2, h / 2);
 	QBoundary b_sw(x - w / 2, z - h / 2, w / 2, h / 2);
 	QBoundary b_se(x + w / 2, z - h / 2, w / 2, h / 2);
 
-	nw = new QNode(b_nw, parent->mDepth);
-	ne = new QNode(b_ne, parent->mDepth);
-	sw = new QNode(b_sw, parent->mDepth);
-	se = new QNode(b_se, parent->mDepth);
+	nw = new QNode(b_nw, mDepth);
+	ne = new QNode(b_ne, mDepth);
+	sw = new QNode(b_sw, mDepth);
+	se = new QNode(b_se, mDepth);
 }
 
-QPoint3D* QNode::insert(QPoint3D* p, int depth) {		// NW | NE		1 | 2 
-	parent = this;										// ---+---	   ---+---
-														// SW | SE		3 | 4
-	if (parent->mDepth <= depth) {
-		//mPoints.push_back(p);
-		p->SetEndNodeXZ(parent->GetBoundary().GetX(), parent->GetBoundary().GetZ());
-		return p;
+void QNode::insert(QPoint3D* point, QHeightmap* heightmap, int depth) {		// NW | NE		1 | 2 
+	if (mDepth == depth) {													// ---+---		--+--
+		//point->SetEndNodeXZ(mBoundary.GetX(), mBoundary.GetZ());			// SW | SE		3 | 4
+		point->SetEndNodeXZ(mBoundary.GetX(), mBoundary.GetZ());
+		heightmap->findHeightXYZ(point);
+		return;
 	}
 
-	if (parent->mDepth > depth) {
+	if (mDepth > depth) {
 		subdivide();
 		depth++;
 
-		if (nw->mBoundary.constains(p)) {		// NW == 1
+		if (nw->mBoundary.constains(point)) {		// NW == 1
 			parent = nw;
-			p->SetStringPath("1");
-			parent->insert(p, depth);
+			parent->insert(point, heightmap, depth);
 		}
-		else if (ne->mBoundary.constains(p)) {	// NE == 2
+		else if (ne->mBoundary.constains(point)) {	// NE == 2
 			parent = ne;
-			p->SetStringPath("2");
-			parent->insert(p, depth);
+			parent->insert(point, heightmap, depth);
 		}
-		else if (sw->mBoundary.constains(p)) {	// SW == 3
+		else if (sw->mBoundary.constains(point)) {	// SW == 3
 			parent = sw;
-			p->SetStringPath("3");
-			parent->insert(p, depth);
+			parent->insert(point, heightmap, depth);
 		}
-		else if (se->mBoundary.constains(p)) {	// SE == 4
+		else if (se->mBoundary.constains(point)) {	// SE == 4
 			parent = se;
-			p->SetStringPath("4");
-			parent->insert(p, depth);
+			parent->insert(point, heightmap, depth);
 		}
 	}
 }
@@ -169,6 +164,58 @@ void QNode::writePCD() {
 	fout << "POINTS " << mMapPair.size() << std::endl;
 	fout << "DATA ascii" << std::endl;
 
+	for (auto iter = mMapPair.begin(); iter != mMapPair.end(); ++iter) {
+		fout << iter->first.first << " " << iter->second.first / iter->second.second << " " << iter->first.second << std::endl;	// x y | z
+	}
+
+	fout.close();
+}
+
+
+// ----- Heightmap -----
+
+void QHeightmap::findHeightXYZ(QPoint3D* points) {	// { <x, z>, <y, dividNum> }
+	if (mMapPair.find(std::make_pair(points->GetEndNodeXZ().GetX(), points->GetEndNodeXZ().GetZ())) == mMapPair.end()) {	// 없을 때
+		int dividNum = 1;
+		mMapPair.insert({ std::make_pair(points->GetEndNodeXZ().GetX(), points->GetEndNodeXZ().GetZ()), std::make_pair(points->GetY(), dividNum) });
+	}
+	else {	// 있을 때.
+		mMapPair.find(std::make_pair(points->GetEndNodeXZ().GetX(), points->GetEndNodeXZ().GetZ()))->second.first += points->GetY();
+		mMapPair.find(std::make_pair(points->GetEndNodeXZ().GetX(), points->GetEndNodeXZ().GetZ()))->second.second++;
+	}
+}
+
+void QHeightmap::writePCD() {
+	time_t t;
+	struct tm* timeinfo;
+	time(&t);
+	timeinfo = localtime(&t);
+
+	std::string hour, min;
+
+	if (timeinfo->tm_hour < 10) hour = "0" + std::to_string(timeinfo->tm_hour);
+	else hour = std::to_string(timeinfo->tm_hour);
+
+	if (timeinfo->tm_min < 10) min = "0" + std::to_string(timeinfo->tm_min);
+	else min = std::to_string(timeinfo->tm_min);
+
+	std::string filePath = "C:\\Users\\WOOKJIN\\Desktop\\testPCD_khnp\\test_output\\" + hour + min + ".pcd";
+
+	std::ofstream fout;
+	fout.open(filePath);
+
+	fout << "VERSION" << std::endl;
+	fout << "FIELDS x y z" << std::endl;
+	fout << "SIZE 4 4 4" << std::endl;
+	fout << "TYPE F F F" << std::endl;
+	fout << "COUNT 1 1 1" << std::endl;
+	fout << "WIDTH 1" << std::endl;
+	fout << "HEIGHT " << mMapPair.size() << std::endl;
+	fout << "VIEWPOINT 0 0 0 1 0 0 0" << std::endl;
+	fout << "POINTS " << mMapPair.size() << std::endl;
+	fout << "DATA ascii" << std::endl;
+
+	std::cout << mMapPair.size() << std::endl;
 	for (auto iter = mMapPair.begin(); iter != mMapPair.end(); ++iter) {
 		fout << iter->first.first << " " << iter->second.first / iter->second.second << " " << iter->first.second << std::endl;	// x y | z
 	}
